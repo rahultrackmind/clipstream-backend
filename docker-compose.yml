@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: clipstream
+      POSTGRES_PASSWORD: clipstream
+      POSTGRES_DB: clipstream
+    ports: ["5800:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: #lets Docker know whether Postgres is actually ready to accept connections, not just started; this matters later, when the API must wait for the database.
+      test: ["CMD-SHELL", "pg_isready -U clipstream"]
+      interval: 5s
+      retries: 5
+  redis:
+    image: redis:7-alpine
+    ports: ["6380:6379"]
+
+  minio:
+    image: cgr.dev/chainguard/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: clipstream
+      MINIO_ROOT_PASSWORD: clipstream123
+
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [miniodata:/data]
+
+volumes:
+  pgdata:
+  miniodata:
